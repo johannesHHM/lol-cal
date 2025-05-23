@@ -1,6 +1,6 @@
 [package]
-name = "lol-tui"
-version = "0.1.0"
+name = "lol-cal"
+version = "0.1.1"
 description = "A lolesports schedule viewer"
 authors = ["Johannes Herman <johannes.herman@gmail.com>"]
 license = "MIT"
