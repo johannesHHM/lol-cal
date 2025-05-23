@@ -43,6 +43,11 @@ impl Default for KeyBindings {
         bind!(KeyCode::Char('q') => AppEvent::Quit);
         bind!(KeyCode::Char('c'), KeyModifiers::CONTROL => AppEvent::Quit);
 
+        bind!(KeyCode::Char('k') => AppEvent::Up);
+        bind!(KeyCode::Char('j') => AppEvent::Down);
+        bind!(KeyCode::Char('h') => AppEvent::Left);
+        bind!(KeyCode::Char('l') => AppEvent::Right);
+
         bind!(KeyCode::Up => AppEvent::Up);
         bind!(KeyCode::Down => AppEvent::Down);
         bind!(KeyCode::Left => AppEvent::Left);
@@ -53,7 +58,7 @@ impl Default for KeyBindings {
         bind!(KeyCode::Char('s'), KeyModifiers::CONTROL => AppEvent::ToggleSpoilResults);
         bind!(KeyCode::Char('s'), KeyModifiers::SHIFT => AppEvent::ToggleSpoilMatches);
 
-        bind!(KeyCode::Char('r') => AppEvent::ReloadLeagues);
+        bind!(KeyCode::Char('r') => AppEvent::ReloadSchedule);
 
         KeyBindings(map)
     }
@@ -91,7 +96,7 @@ impl Default for Styles {
             border_set: Some(line::NORMAL),
             default: Style::default(),
             highlight: Style::default().blue(),
-            selected: Style::default().red(),
+            selected: Style::default().red().bold(),
             winner: Some(Style::default().green()),
             loser: None,
         }
@@ -117,7 +122,7 @@ impl Default for Config {
             data_dir: get_data_dir(),
             default_leagues: Vec::new(),
             spoil_results: false,
-            spoil_matches: false,
+            spoil_matches: true,
             automatic_reload: false,
             keybindings: KeyBindings::default(),
             style: Styles::default(),
