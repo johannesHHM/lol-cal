@@ -189,7 +189,7 @@ impl App {
 
                     AppEvent::ReloadLeagues => self.reload_leagues(),
                     AppEvent::RecieveLeagues(l) => {
-                        self.leagues.leagues = l;
+                        self.leagues.set_leagues(l);
                         if !self.leagues.leagues.is_empty() {
                             self.leagues_state.list_state.select_first();
                             let default_leagues = self.config.default_leagues.clone();
@@ -226,8 +226,16 @@ impl App {
 
     fn draw(&mut self, frame: &mut Frame, area: Rect) {
         // let vert_areas = Layout::vertical([Constraint::Max(1), Constraint::Min(0)]).split(area);
-        let hor_areas =
-            Layout::horizontal([Constraint::Ratio(1, 3), Constraint::Ratio(2, 3)]).split(area);
+        let mut league_padding = 3;
+        if self.config.style.border.is_some() {
+            league_padding += 2;
+        }
+        let hor_areas = Layout::horizontal([
+            Constraint::Length(self.leagues.longest + league_padding),
+            Constraint::Min(50),
+        ])
+        .split(area);
+
         frame.render_stateful_widget_ref(&self.leagues, hor_areas[0], &mut self.leagues_state);
         frame.render_stateful_widget_ref(&self.schedule, hor_areas[1], &mut self.schedule_state);
 

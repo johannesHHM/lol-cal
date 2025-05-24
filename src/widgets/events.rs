@@ -2,7 +2,7 @@ use chrono::{DateTime, Local, NaiveDate};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
-    style::{Modifier, Stylize},
+    style::{Color, Modifier, Stylize},
     symbols::line,
     text::{Line, Text},
     widgets::{Block, Borders, Clear, StatefulWidgetRef, Widget, WidgetRef},
@@ -302,7 +302,7 @@ impl StatefulWidgetRef for &Events {
         let inner_area = {
             if let (Some(block), Some(set)) = (styles.border, styles.border_set) {
                 let border_style = if state.focused {
-                    styles.highlight
+                    styles.highlight.bg(Color::Reset)
                 } else {
                     styles.default
                 };
@@ -361,7 +361,9 @@ impl StatefulWidgetRef for &Events {
                         height: 1 as u16,
                     };
 
-                    let title = Line::from("Schedule").centered().style(styles.highlight);
+                    let title = Line::from("Schedule")
+                        .centered()
+                        .style(styles.highlight.bg(Color::Reset));
                     title.render_ref(title_area, buf);
 
                     inner.y += 2;
@@ -452,17 +454,20 @@ impl StatefulWidgetRef for &Events {
                 {
                     styles.selected
                 } else {
-                    styles.highlight
+                    styles.highlight.bg(Color::Reset)
                 };
 
-                let date_line = Line::from(event.start_time.format("%A - %d %B ").to_string())
+                let date_line = Line::from(event.start_time.format("%A - %d %B").to_string())
                     .right_aligned()
                     .style(style);
 
                 let date_area: Rect = Rect {
-                    x: inner_area.left(),
+                    x: inner_area.left()
+                        + (inner_area
+                            .width
+                            .saturating_sub(date_line.width() as u16 + 1)),
                     y: inner_area.top() + current_height,
-                    width: inner_area.width,
+                    width: date_line.width().min(inner_area.width as usize) as u16,
                     height: 1 as u16,
                 };
                 current_height += 1;
@@ -484,7 +489,7 @@ impl StatefulWidgetRef for &Events {
                 })
                 .collect();
 
-            let mut style = if state.selected.is_some_and(|s| s == i) && state.focused {
+            let style = if state.selected.is_some_and(|s| s == i) && state.focused {
                 styles.highlight
             } else {
                 styles.default
@@ -509,14 +514,14 @@ impl StatefulWidgetRef for &Events {
                                     style0 = style_winner;
                                 }
                                 if let Some(style_loser) = styles.loser {
-                                    style1 = style_loser;
+                                    style1 = style_loser.bg(Color::Reset);
                                 }
                             } else if res.game_wins.1 > res.game_wins.0 {
                                 if let Some(style_winner) = styles.winner {
-                                    style1 = style_winner;
+                                    style1 = style_winner.bg(Color::Reset);
                                 }
                                 if let Some(style_loser) = styles.loser {
-                                    style0 = style_loser;
+                                    style0 = style_loser.bg(Color::Reset);
                                 }
                             }
                         }
@@ -529,6 +534,11 @@ impl StatefulWidgetRef for &Events {
                 };
             }
 
+            if state.selected.is_some_and(|s| s == i) && state.focused {
+                style0.bg = styles.highlight.bg;
+                style1.bg = styles.highlight.bg;
+            }
+
             if !state.spoil_matches && matches!(event.state, MatchState::Unstarted(_)) {
                 if event.teams[0].name != "TBD" {
                     team0 = "???".to_string();
@@ -536,12 +546,6 @@ impl StatefulWidgetRef for &Events {
                 if event.teams[1].name != "TBD" {
                     team1 = "???".to_string();
                 }
-            }
-
-            if state.selected.is_some_and(|s| s == i) && state.focused {
-                style.bg = styles.selected.bg;
-                style0.bg = styles.selected.bg;
-                style1.bg = styles.selected.bg;
             }
 
             Text::from(if state.selected.is_some_and(|s| s == i) {

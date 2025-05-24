@@ -3,6 +3,7 @@ use std::rc::Rc;
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
+    style::Color,
     text::Line,
     widgets::{
         Block, Borders, List, ListItem, ListState, StatefulWidget, StatefulWidgetRef, WidgetRef,
@@ -29,7 +30,7 @@ pub struct League {
 impl League {
     fn to_list_item(&self, styles: &Styles) -> ListItem {
         ListItem::new(format!("{}", self.name)).style(match self.selected {
-            true => styles.highlight,
+            true => styles.selected,
             false => styles.default,
         })
     }
@@ -37,6 +38,7 @@ impl League {
 
 #[derive(Debug)]
 pub struct Leagues {
+    pub longest: u16,
     pub leagues: Vec<League>,
     config: Rc<Config>,
 }
@@ -44,6 +46,7 @@ pub struct Leagues {
 impl Leagues {
     pub fn new(config: Rc<Config>) -> Self {
         Self {
+            longest: 0,
             leagues: Vec::new(),
             config: config,
         }
@@ -79,6 +82,16 @@ impl Leagues {
             .map(|l| l.id.to_string())
             .collect()
     }
+
+    pub fn set_leagues(&mut self, leagues: Vec<League>) {
+        self.leagues = leagues;
+        self.longest = self
+            .leagues
+            .iter()
+            .max_by_key(|l| l.name.len())
+            .map(|item| item.name.len())
+            .unwrap_or_default() as u16;
+    }
 }
 
 impl StatefulWidgetRef for &Leagues {
@@ -90,7 +103,7 @@ impl StatefulWidgetRef for &Leagues {
         let inner_area = {
             if let (Some(block), Some(set)) = (styles.border, styles.border_set) {
                 let border_style = if state.focused {
-                    styles.highlight
+                    styles.highlight.bg(Color::Reset)
                 } else {
                     styles.default
                 };
@@ -128,7 +141,9 @@ impl StatefulWidgetRef for &Leagues {
                         height: 1 as u16,
                     };
 
-                    let title = Line::from("Leagues").centered().style(styles.highlight);
+                    let title = Line::from("Leagues")
+                        .centered()
+                        .style(styles.highlight.bg(Color::Reset));
                     title.render_ref(title_area, buf);
 
                     inner.y += 2;
