@@ -113,7 +113,6 @@ impl ResourceManager {
                 } else {
                     return Some(events);
                 }
-                return Some(events);
             }
             Err(e) => info!("Failed to load cached schedule '{}': {:?}", slug, e),
         }
