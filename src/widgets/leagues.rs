@@ -3,7 +3,7 @@ use std::rc::Rc;
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
-    style::Color,
+    style::{Color, Style},
     text::Line,
     widgets::{
         Block, Borders, List, ListItem, ListState, StatefulWidget, StatefulWidgetRef, WidgetRef,
@@ -158,12 +158,18 @@ impl StatefulWidgetRef for &Leagues {
             }
         };
 
+        let mut highlight_style = Style::default();
+        highlight_style.bg = styles.highlight.bg;
+
         let items: Vec<ListItem> = self
             .leagues
             .iter()
             .map(|l| l.to_list_item(styles))
             .collect();
-        let list = List::new(items).highlight_symbol("* ");
+
+        let list = List::new(items)
+            .highlight_symbol("* ")
+            .highlight_style(highlight_style);
 
         list.render(inner_area, buf, &mut state.list_state);
     }
