@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use chrono::{DateTime, Local, Utc};
+use chrono::{DateTime, Duration, Local, Utc};
 use reqwest::Client;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -40,25 +40,38 @@ impl ResourceManager {
         Ok(())
     }
 
-    async fn load_from_cache<T: DeserializeOwned>(&self, name: &str) -> std::io::Result<T> {
+    async fn load_from_cache<T: DeserializeOwned>(
+        &self,
+        name: &str,
+    ) -> std::io::Result<(T, DateTime<Local>)> {
         let cache_path = self.cache_dir.join(name);
 
         let mut file = fs::File::open(&cache_path).await?;
         let mut contents = Vec::new();
         file.read_to_end(&mut contents).await?;
 
+        let metadata = fs::metadata(&cache_path).await?;
+        let modified_time = metadata.modified()?;
+        let modified_datetime: DateTime<Local> = modified_time.into();
+
         let data = serde_json::from_slice(&contents)
             .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
 
-        Ok(data)
+        Ok((data, modified_datetime))
     }
 
     pub async fn get_leagues(&self) -> Option<Vec<League>> {
         // TODO: make a max timer, eg id data is >7 days old, fetch new
 
         match self.load_from_cache("leagues.json").await {
-            Ok(leagues) => {
+            Ok((leagues, cached_time)) => 'fetch: {
                 info!("Successfully loaded cached leagues");
+                let now = Local::now();
+
+                if cached_time < now - Duration::days(7) {
+                    info!("Cached leagues is older then 3 days, need to fetch newer");
+                    break 'fetch;
+                }
                 return Some(leagues);
             }
             Err(e) => info!("Failed to load cached leagues: {:?}", e),
@@ -85,34 +98,37 @@ impl ResourceManager {
     }
 
     pub async fn get_schedule(&self, slug: &str) -> Option<Vec<Event>> {
-        // NOTE: currently checking if there is a game in the cached
-        // schedules that is marked Unstarted, but is later then now.
-        // What if latest match is completed, ex. Worlds, but then there
-        // is a new worlds. Currently would just keep the cached data,
-        // since no macthes are marked Unstarted, all are completed.
-        // Also, what if a match is marked to start at 4:00, but it is
-        // late, then we would spam the server on every call to get_schedule.
         // TODO: Currently paging is ignored, would probably make sense to handle
         // this outside of get_schedule, so that we don't have to wait for all
         // pages to be gotten.
-        // TODO: Make a max timer, eg if cached data is >3 days old, always fetch new
-        // TODO: Add min timer, eg if cached data is <5 min old, never fetch new
 
         let cache_path = format!("{}.json", slug);
 
         match self.load_from_cache(&cache_path).await {
-            Ok(events) => {
+            Ok((events, cached_time)) => 'fetch: {
                 info!("Successfully loaded cached schedule '{}'", slug);
-                let events: Vec<Event> = events;
                 let now = Local::now();
+
+                if cached_time < now - Duration::days(3) {
+                    info!("Cached schedule is older then 3 days, need to fetch newer");
+                    break 'fetch;
+                }
+
+                if cached_time > now - Duration::minutes(5) {
+                    info!("Cached schedule is younger then 5 minutes, accepting cached data");
+                    return Some(events);
+                }
+
+                let events: Vec<Event> = events;
                 let has_invalid_event = events
                     .iter()
                     .any(|e| e.state.get_string() == "Unstarted" && e.start_time < now);
+
                 if has_invalid_event {
                     info!("Cached schedule is outdated due to unstarted past events");
-                } else {
-                    return Some(events);
+                    break 'fetch;
                 }
+                return Some(events);
             }
             Err(e) => info!("Failed to load cached schedule '{}': {:?}", slug, e),
         }

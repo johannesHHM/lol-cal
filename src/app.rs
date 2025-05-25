@@ -179,7 +179,12 @@ impl App {
                     AppEvent::Right => self.handle_right(),
                     AppEvent::Select => self.handle_select(),
 
-                    AppEvent::GotoToday => self.schedule_state.select_today(&self.schedule),
+                    AppEvent::GotoToday => {
+                        self.schedule_state.select_today(&self.schedule);
+                        self.mode = Mode::Events;
+                        self.schedule_state.focused = true;
+                        self.leagues_state.focused = false;
+                    }
                     AppEvent::ToggleSpoilResults => {
                         self.schedule_state.spoil_results = !self.schedule_state.spoil_results
                     }
