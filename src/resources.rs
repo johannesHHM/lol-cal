@@ -61,15 +61,13 @@ impl ResourceManager {
     }
 
     pub async fn get_leagues(&self) -> Option<Vec<League>> {
-        // TODO: make a max timer, eg id data is >7 days old, fetch new
-
         match self.load_from_cache("leagues.json").await {
             Ok((leagues, cached_time)) => 'fetch: {
                 info!("Successfully loaded cached leagues");
                 let now = Local::now();
 
                 if cached_time < now - Duration::days(7) {
-                    info!("Cached leagues is older then 3 days, need to fetch newer");
+                    info!("Cached leagues is older then 7 days, fetching new list");
                     break 'fetch;
                 }
                 return Some(leagues);
