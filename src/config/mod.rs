@@ -123,7 +123,7 @@ impl Default for Config {
             default_leagues: Vec::new(),
             spoil_results: false,
             spoil_matches: true,
-            automatic_reload: false,
+            automatic_reload: true,
             keybindings: KeyBindings::default(),
             style: Styles::default(),
         }
