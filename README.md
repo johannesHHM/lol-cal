@@ -116,3 +116,4 @@ selected = bold white
 - more flexible layout options?
 - a selected match field / area?
 - export to calendar format?
+- man page for better documentation
