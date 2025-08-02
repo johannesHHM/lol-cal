@@ -1,3 +1,6 @@
 # lol-cal
 
-A lolesports schedule viewer in your terminal!
+![Screenshot](data/showcase-col.png)
+
+A lolesports schedule viewer for your terminal.
+
