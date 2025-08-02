@@ -34,7 +34,7 @@ impl DerefMut for RawConfig {
 
 impl Config {
     pub fn new() -> Result<Self, Error> {
-        let config_path = get_config_dir().join("config.ini");
+        let config_path = get_config_dir().join("config");
         if config_path.exists() {
             Config::from_file(config_path)
         } else {
