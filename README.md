@@ -1,14 +1,15 @@
 # lol-cal
 
+A lolesports schedule viewer for your terminal.
+
 ![Screenshot](data/showcase-col.png)
 
-A lolesports schedule viewer for your terminal.
 I found the lolesports schedule site to be slow, filled with unnecessary information 
 and cumbersome to use, so I made a terminal interface for it instead.
 The program fetches data from the lolesports backend, and displays it in a customizable TUI.
 All data is cached and is only reacquired when it is necessary, keeping outbounding requests to a minimum.
 
-### running
+## running
 ```sh
 git clone https://github.com/johannesHHM/lol-cal.git
 cd lol-cal
