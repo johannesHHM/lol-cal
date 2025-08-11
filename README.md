@@ -15,12 +15,11 @@ git clone https://github.com/johannesHHM/lol-cal.git
 cd lol-cal
 cargo run
 ```
-duh
 
 ## config
 The program looks for the config file at ```$XDG_CONFIG_HOME/lol-cal/config``` on linux.
 Windows and macOS are also theoretically supported, though they are untested.
-The config file has ini-like syntax. Following are the configurable 
+The config file has ini-like syntax. Following are the configurable settings, and an example config.
 
 ### settings
 | setting          | default | description                                                                                               |
