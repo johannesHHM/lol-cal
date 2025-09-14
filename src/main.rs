@@ -7,7 +7,6 @@ pub mod event;
 pub mod logging;
 pub mod net;
 pub mod resources;
-pub mod ui;
 pub mod widgets;
 
 #[tokio::main]
