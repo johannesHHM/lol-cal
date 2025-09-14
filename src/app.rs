@@ -14,6 +14,7 @@ use crate::{
     resources::ResourceManager,
     widgets::{
         events::{Events, ScheduleState},
+        fillchar::FillChar,
         leagues::{Leagues, LeaguesState},
     },
 };
@@ -34,8 +35,8 @@ pub struct App {
 
 #[derive(Debug, Default, Display)]
 pub enum Mode {
-    #[default]
     None,
+    #[default]
     Leagues,
     Events,
 }
@@ -231,18 +232,26 @@ impl App {
 
     fn draw(&mut self, frame: &mut Frame, area: Rect) {
         // let vert_areas = Layout::vertical([Constraint::Max(1), Constraint::Min(0)]).split(area);
+        let schedule_min = 56;
+        let mut seperator = 0;
         let mut league_padding = 3;
         if self.config.style.border.is_some() {
             league_padding += 2;
+        } else {
+            seperator = 1;
         }
         let hor_areas = Layout::horizontal([
             Constraint::Length(self.leagues.longest + league_padding),
-            Constraint::Min(50),
+            Constraint::Length(seperator),
+            Constraint::Min(schedule_min),
         ])
         .split(area);
 
+        let widget = FillChar::new('│');
+
         frame.render_stateful_widget_ref(&self.leagues, hor_areas[0], &mut self.leagues_state);
-        frame.render_stateful_widget_ref(&self.schedule, hor_areas[1], &mut self.schedule_state);
+        frame.render_widget(widget, hor_areas[1]);
+        frame.render_stateful_widget_ref(&self.schedule, hor_areas[2], &mut self.schedule_state);
 
         /*
         let top_line = Text::from(format!(
